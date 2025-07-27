@@ -1,6 +1,31 @@
 import React, { useState, useEffect } from 'react';
+import { 
+  Box, 
+  Container, 
+  Heading, 
+  VStack, 
+  HStack,
+  Text, 
+  Button, 
+  Card, 
+  CardBody, 
+  CardHeader,
+  Badge,
+  Spinner,
+  Center,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
+  Grid,
+  GridItem,
+  useBreakpointValue,
+  SimpleGrid,
+  Flex,
+  IconButton
+} from '@chakra-ui/react';
+import { ChevronLeftIcon, ChevronRightIcon } from '@chakra-ui/icons';
 import { api } from '../services/api';
-import './CalendarView.css';
 
 export default function CalendarView() {
   const [bookings, setBookings] = useState([]);
@@ -13,6 +38,14 @@ export default function CalendarView() {
     past: [],
     future: [],
     today: []
+  });
+
+  const containerMaxW = useBreakpointValue({ base: "100%", md: "1200px", lg: "1400px" });
+  const gridTemplateColumns = useBreakpointValue({ 
+    base: "1fr", 
+    md: "repeat(2, 1fr)",
+    lg: "repeat(3, 1fr)",
+    xl: "repeat(auto-fit, minmax(350px, 1fr))"
   });
 
   useEffect(() => {
@@ -107,6 +140,16 @@ export default function CalendarView() {
     return bookings.filter(booking => booking.date === dateString);
   };
 
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'confirmed': return 'green';
+      case 'pending': return 'yellow';
+      case 'cancelled': return 'red';
+      case 'completed': return 'blue';
+      default: return 'gray';
+    }
+  };
+
   const renderCalendar = () => {
     const daysInMonth = getDaysInMonth(currentDate);
     const firstDay = getFirstDayOfMonth(currentDate);
@@ -114,7 +157,7 @@ export default function CalendarView() {
 
     // Add empty cells for days before the first day of the month
     for (let i = 0; i < firstDay; i++) {
-      days.push(<div key={`empty-${i}`} className="calendar-day empty"></div>);
+      days.push(<Box key={`empty-${i}`} bg="gray.50" minH="80px" />);
     }
 
     // Add cells for each day of the month
@@ -124,49 +167,90 @@ export default function CalendarView() {
       const hasBookings = dayBookings.length > 0;
       
       days.push(
-        <div
+        <Box
           key={day}
-          className={`calendar-day ${isToday(date) ? 'today' : ''} ${isSelected(date) ? 'selected' : ''} ${hasBookings ? 'has-bookings' : ''}`}
+          minH="80px"
+          p={2}
+          border="1px"
+          borderColor="gray.200"
+          cursor="pointer"
+          bg={isToday(date) ? "blue.50" : isSelected(date) ? "blue.100" : "white"}
+          _hover={{ bg: "gray.50" }}
           onClick={() => setSelectedDate(date)}
+          position="relative"
         >
-          <span className="day-number">{day}</span>
+          <Text
+            fontWeight={isToday(date) ? "bold" : "normal"}
+            color={isToday(date) ? "blue.600" : "gray.700"}
+          >
+            {day}
+          </Text>
           {hasBookings && (
-            <div className="booking-indicator">
-              <span className="booking-count">{dayBookings.length}</span>
-            </div>
+            <Badge
+              position="absolute"
+              top={1}
+              right={1}
+              colorScheme="blue"
+              size="sm"
+            >
+              {dayBookings.length}
+            </Badge>
           )}
-        </div>
+        </Box>
       );
     }
 
     return days;
   };
 
-  const renderBookingList = (bookings, title, className) => (
-    <div className={`booking-group ${className}`}>
-      <h3 className="group-title">{title} ({bookings.length})</h3>
-      {bookings.length === 0 ? (
-        <p className="no-bookings">No {title.toLowerCase()} bookings</p>
-      ) : (
-        <div className="bookings-grid">
-          {bookings.map((booking) => (
-            <div key={booking._id} className="booking-card">
-              <div className="booking-header">
-                <h4>{booking.machine}</h4>
-                <span className={`status-badge status-${booking.status}`}>
-                  {booking.status}
-                </span>
-              </div>
-              <div className="booking-details">
-                <p><strong>Date:</strong> {new Date(booking.date).toLocaleDateString()}</p>
-                <p><strong>Time:</strong> {new Date(booking.date).toLocaleTimeString()}</p>
-                <p><strong>Booked on:</strong> {new Date(booking.createdAt).toLocaleDateString()}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+  const renderBookingList = (bookings, title, colorScheme) => (
+    <Card variant="outline">
+      <CardHeader>
+        <Heading size="md" color={`${colorScheme}.600`}>
+          {title} ({bookings.length})
+        </Heading>
+      </CardHeader>
+      <CardBody>
+        {bookings.length === 0 ? (
+          <Text color="gray.600" textAlign="center">
+            No {title.toLowerCase()} bookings
+          </Text>
+        ) : (
+          <Grid templateColumns={gridTemplateColumns} gap={4}>
+            {bookings.map((booking) => (
+              <Card key={booking._id} variant="outline" _hover={{ shadow: "md" }}>
+                <CardHeader pb={2}>
+                  <HStack justify="space-between" align="start">
+                    <VStack align="start" spacing={1}>
+                      <Heading size="sm">{booking.machine}</Heading>
+                      <Badge colorScheme={getStatusColor(booking.status)} variant="subtle">
+                        {booking.status}
+                      </Badge>
+                    </VStack>
+                  </HStack>
+                </CardHeader>
+                <CardBody pt={0}>
+                  <VStack spacing={2} align="stretch">
+                    <Box>
+                      <Text fontWeight="bold" color="gray.700" fontSize="sm">Date:</Text>
+                      <Text color="gray.600" fontSize="sm">{new Date(booking.date).toLocaleDateString()}</Text>
+                    </Box>
+                    <Box>
+                      <Text fontWeight="bold" color="gray.700" fontSize="sm">Time:</Text>
+                      <Text color="gray.600" fontSize="sm">{new Date(booking.date).toLocaleTimeString()}</Text>
+                    </Box>
+                    <Box>
+                      <Text fontWeight="bold" color="gray.700" fontSize="sm">Booked on:</Text>
+                      <Text color="gray.600" fontSize="sm">{new Date(booking.createdAt).toLocaleDateString()}</Text>
+                    </Box>
+                  </VStack>
+                </CardBody>
+              </Card>
+            ))}
+          </Grid>
+        )}
+      </CardBody>
+    </Card>
   );
 
   const navigateMonth = (direction) => {
@@ -179,115 +263,175 @@ export default function CalendarView() {
 
   if (loading) {
     return (
-      <div className="container">
-        <div className="loading">Loading calendar...</div>
-      </div>
+      <Container maxW={containerMaxW} py={10} px={4}>
+        <Center>
+          <VStack spacing={4}>
+            <Spinner size="xl" color="blue.500" />
+            <Text fontSize="lg" color="gray.600">Loading calendar...</Text>
+          </VStack>
+        </Center>
+      </Container>
     );
   }
 
   const currentUserId = api.getCurrentUser();
   if (!currentUserId) {
     return (
-      <div className="container">
-        <div className="calendar-header">
-          <h1>Booking Calendar</h1>
-        </div>
-        <p>Please select a user to view the calendar.</p>
-      </div>
+      <Container maxW={containerMaxW} py={10} px={4}>
+        <VStack spacing={6} align="stretch">
+          <Heading size="xl" textAlign="center" color="blue.600">
+            📅 Booking Calendar
+          </Heading>
+          <Card>
+            <CardBody>
+              <Text textAlign="center" color="gray.600">
+                Please select a user to view the calendar.
+              </Text>
+            </CardBody>
+          </Card>
+        </VStack>
+      </Container>
     );
   }
 
   if (error) {
     return (
-      <div className="container">
-        <div className="error">
-          <h2>Error</h2>
-          <p>{error}</p>
-          <button onClick={loadBookings}>Retry</button>
-        </div>
-      </div>
+      <Container maxW={containerMaxW} py={10} px={4}>
+        <Alert status="error" borderRadius="lg">
+          <AlertIcon />
+          <Box>
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Box>
+          <Button ml={4} colorScheme="red" onClick={loadBookings}>
+            Retry
+          </Button>
+        </Alert>
+      </Container>
     );
   }
 
   return (
-    <div className="container calendar-page">
-      <div className="calendar-header">
-        <h1>Booking Calendar</h1>
-        <div className="view-controls">
-          <button
-            className={`view-btn ${viewMode === 'calendar' ? 'active' : ''}`}
-            onClick={() => setViewMode('calendar')}
-          >
-            Calendar View
-          </button>
-          <button
-            className={`view-btn ${viewMode === 'list' ? 'active' : ''}`}
-            onClick={() => setViewMode('list')}
-          >
-            List View
-          </button>
-        </div>
-        <a href="/" className="back-link">← Back to Booking</a>
-      </div>
+    <Container maxW={containerMaxW} py={8} px={4}>
+      <VStack spacing={8} align="stretch">
+        <Box>
+          <Heading size="xl" color="blue.600" mb={2}>
+            📅 Booking Calendar
+          </Heading>
+          <Text color="gray.600" fontSize="lg">
+            View and manage your bookings in calendar or list format
+          </Text>
+        </Box>
 
-      {viewMode === 'calendar' ? (
-        <div className="calendar-container">
-          <div className="calendar-navigation">
-            <button onClick={() => navigateMonth(-1)} className="nav-btn">← Previous</button>
-            <h2 className="current-month">
-              {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-            </h2>
-            <button onClick={() => navigateMonth(1)} className="nav-btn">Next →</button>
-          </div>
+        <HStack spacing={4} justify="space-between" wrap="wrap">
+          <HStack spacing={2}>
+            <Button
+              colorScheme={viewMode === 'calendar' ? 'blue' : 'gray'}
+              variant={viewMode === 'calendar' ? 'solid' : 'outline'}
+              onClick={() => setViewMode('calendar')}
+            >
+              Calendar View
+            </Button>
+            <Button
+              colorScheme={viewMode === 'list' ? 'blue' : 'gray'}
+              variant={viewMode === 'list' ? 'solid' : 'outline'}
+              onClick={() => setViewMode('list')}
+            >
+              List View
+            </Button>
+          </HStack>
+          <Button as="a" href="/" colorScheme="gray" variant="outline" leftIcon={<span>←</span>}>
+            Back to Booking
+          </Button>
+        </HStack>
 
-          <div className="calendar-grid">
-            <div className="calendar-weekdays">
-              <div>Sun</div>
-              <div>Mon</div>
-              <div>Tue</div>
-              <div>Wed</div>
-              <div>Thu</div>
-              <div>Fri</div>
-              <div>Sat</div>
-            </div>
-            <div className="calendar-days">
-              {renderCalendar()}
-            </div>
-          </div>
+        {viewMode === 'calendar' ? (
+          <VStack spacing={6} align="stretch">
+            <Card>
+              <CardBody>
+                <VStack spacing={4}>
+                  <HStack justify="space-between" w="100%">
+                    <IconButton
+                      icon={<ChevronLeftIcon />}
+                      onClick={() => navigateMonth(-1)}
+                      aria-label="Previous month"
+                      variant="outline"
+                    />
+                    <Heading size="md">
+                      {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                    </Heading>
+                    <IconButton
+                      icon={<ChevronRightIcon />}
+                      onClick={() => navigateMonth(1)}
+                      aria-label="Next month"
+                      variant="outline"
+                    />
+                  </HStack>
 
-          {selectedDate && (
-            <div className="selected-date-bookings">
-              <h3>Bookings for {selectedDate.toLocaleDateString()}</h3>
-              {getBookingsForDate(selectedDate).length === 0 ? (
-                <p>No bookings for this date</p>
-              ) : (
-                <div className="bookings-grid">
-                  {getBookingsForDate(selectedDate).map((booking) => (
-                    <div key={booking._id} className="booking-card">
-                      <div className="booking-header">
-                        <h4>{booking.machine}</h4>
-                        <span className={`status-badge status-${booking.status}`}>
-                          {booking.status}
-                        </span>
-                      </div>
-                      <div className="booking-details">
-                        <p><strong>Time:</strong> {new Date(booking.date).toLocaleTimeString()}</p>
-                        <p><strong>Status:</strong> {booking.status}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="list-view">
-          {renderBookingList(groupedBookings.today, 'Today', 'today-group')}
-          {renderBookingList(groupedBookings.future, 'Upcoming', 'future-group')}
-          {renderBookingList(groupedBookings.past, 'Past', 'past-group')}
-        </div>
-      )}
-    </div>
+                  <SimpleGrid columns={7} spacing={0} w="100%">
+                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                      <Box key={day} p={2} textAlign="center" fontWeight="bold" bg="gray.100">
+                        {day}
+                      </Box>
+                    ))}
+                    {renderCalendar()}
+                  </SimpleGrid>
+                </VStack>
+              </CardBody>
+            </Card>
+
+            {selectedDate && (
+              <Card>
+                <CardHeader>
+                  <Heading size="md">Bookings for {selectedDate.toLocaleDateString()}</Heading>
+                </CardHeader>
+                <CardBody>
+                  {getBookingsForDate(selectedDate).length === 0 ? (
+                    <Text color="gray.600" textAlign="center">
+                      No bookings for this date
+                    </Text>
+                  ) : (
+                    <Grid templateColumns={gridTemplateColumns} gap={4}>
+                      {getBookingsForDate(selectedDate).map((booking) => (
+                        <Card key={booking._id} variant="outline" _hover={{ shadow: "md" }}>
+                          <CardHeader pb={2}>
+                            <HStack justify="space-between" align="start">
+                              <VStack align="start" spacing={1}>
+                                <Heading size="sm">{booking.machine}</Heading>
+                                <Badge colorScheme={getStatusColor(booking.status)} variant="subtle">
+                                  {booking.status}
+                                </Badge>
+                              </VStack>
+                            </HStack>
+                          </CardHeader>
+                          <CardBody pt={0}>
+                            <VStack spacing={2} align="stretch">
+                              <Box>
+                                <Text fontWeight="bold" color="gray.700" fontSize="sm">Time:</Text>
+                                <Text color="gray.600" fontSize="sm">{new Date(booking.date).toLocaleTimeString()}</Text>
+                              </Box>
+                              <Box>
+                                <Text fontWeight="bold" color="gray.700" fontSize="sm">Status:</Text>
+                                <Text color="gray.600" fontSize="sm">{booking.status}</Text>
+                              </Box>
+                            </VStack>
+                          </CardBody>
+                        </Card>
+                      ))}
+                    </Grid>
+                  )}
+                </CardBody>
+              </Card>
+            )}
+          </VStack>
+        ) : (
+          <VStack spacing={6} align="stretch">
+            {renderBookingList(groupedBookings.today, 'Today', 'green')}
+            {renderBookingList(groupedBookings.future, 'Upcoming', 'blue')}
+            {renderBookingList(groupedBookings.past, 'Past', 'gray')}
+          </VStack>
+        )}
+      </VStack>
+    </Container>
   );
 } 

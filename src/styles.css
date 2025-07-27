@@ -17,6 +17,11 @@ body {
 .container.calendar-page {
   max-width: 1200px;
 }
+
+/* Users page container should be wider */
+.container.users-page {
+  max-width: 800px;
+}
 .booking-form label {
   display: block;
   margin: 12px 0 6px;
@@ -88,6 +93,48 @@ body {
 }
 .avatar-selector .selected {
   border: 3px solid #007bff;
+}
+
+/* Avatar Selector Container */
+.avatar-selector-container {
+  margin-bottom: 20px;
+}
+
+.avatar-selector-container h3 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  color: #333;
+  font-weight: 500;
+}
+
+.avatar-options {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.avatar-option {
+  padding: 4px;
+  border-radius: 50%;
+  transition: all 0.2s;
+  border: 2px solid transparent;
+}
+
+.avatar-option:hover {
+  transform: scale(1.1);
+}
+
+.avatar-option.selected {
+  border-color: #007bff;
+}
+
+.avatar-option.readonly {
+  opacity: 0.3;
+}
+
+.avatar-option.readonly:hover {
+  transform: none;
 }
 .animation {
   text-align: center;
@@ -268,6 +315,8 @@ body {
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,.05);
   transition: box-shadow 0.2s;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
 .user-card:hover {
@@ -374,6 +423,7 @@ body {
   align-items: center;
   width: 100%;
   gap: 16px;
+  flex-wrap: wrap;
 }
 
 .edit-form input[type="text"],

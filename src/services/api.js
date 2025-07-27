@@ -75,7 +75,7 @@ export const api = {
     if (!userId) {
       throw new Error('No user selected. Please select a user first.');
     }
-    const response = await fetch(`${API_BASE_URL}/gamification/${userId}/avatar`, {
+    const response = await fetch(`${API_BASE_URL}/users/${userId}/avatar`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -83,6 +83,12 @@ export const api = {
       body: JSON.stringify({ avatar }),
     });
     if (!response.ok) throw new Error('Failed to update avatar');
+    return response.json();
+  },
+
+  async getRandomAvatar() {
+    const response = await fetch(`${API_BASE_URL}/avatar/random`);
+    if (!response.ok) throw new Error('Failed to get random avatar');
     return response.json();
   },
 

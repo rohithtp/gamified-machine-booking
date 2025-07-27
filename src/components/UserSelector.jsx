@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { Box, VStack, Heading, Text, Button, Flex, Alert, AlertIcon, AlertTitle, AlertDescription, Link as ChakraLink, Spinner, Center } from '@chakra-ui/react';
+import { Link } from 'react-router-dom';
 import AvatarSelector from './AvatarSelector';
 import { api } from '../services/api';
 
@@ -34,62 +36,90 @@ export default function UserSelector({ onUserSelect }) {
   };
 
   if (loading) {
-    return <div className="user-selector">Loading users...</div>;
+    return (
+      <Box p={4} bg="gray.50" borderRadius="lg" border="1px" borderColor="gray.200">
+        <Center>
+          <VStack spacing={3}>
+            <Spinner size="md" color="blue.500" />
+            <Text>Loading users...</Text>
+          </VStack>
+        </Center>
+      </Box>
+    );
   }
 
   if (error) {
     return (
-      <div className="user-selector">
-        <div className="error">
-          <p>{error}</p>
-          <button onClick={loadUsers}>Retry</button>
-        </div>
-      </div>
+      <Box p={4} bg="gray.50" borderRadius="lg" border="1px" borderColor="gray.200">
+        <Alert status="error" borderRadius="md">
+          <AlertIcon />
+          <Box>
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Box>
+          <Button ml={4} colorScheme="red" onClick={loadUsers}>
+            Retry
+          </Button>
+        </Alert>
+      </Box>
     );
   }
 
   if (users.length === 0) {
     return (
-      <div className="user-selector">
-        <div className="no-users-message">
-          <h3>No Users Available</h3>
-          <p>You need to create users before you can make bookings.</p>
-          <div className="no-users-actions">
-            <a href="/users" className="btn-primary">Go to User Management</a>
-            <p className="help-text">Create your first user in the Users page</p>
-          </div>
-        </div>
-      </div>
+      <Box p={4} bg="gray.50" borderRadius="lg" border="1px" borderColor="gray.200">
+        <VStack spacing={4} textAlign="center">
+          <Heading size="md">No Users Available</Heading>
+          <Text>You need to create users before you can make bookings.</Text>
+          <VStack spacing={3}>
+            <ChakraLink as={Link} to="/users" color="blue.500" fontWeight="medium">
+              Go to User Management
+            </ChakraLink>
+            <Text fontSize="sm" color="gray.500" fontStyle="italic">
+              Create your first user in the Users page
+            </Text>
+          </VStack>
+        </VStack>
+      </Box>
     );
   }
 
   return (
-    <div className="user-selector">
-      <h3>Select User:</h3>
-      <div className="user-options">
-        {users.map(user => (
-          <div
-            key={user._id}
-            className={`user-option ${selectedUserId === user._id ? 'selected' : ''}`}
-            onClick={() => handleUserSelect(user._id)}
-          >
-            <AvatarSelector
-              avatar={user.avatar}
-              setAvatar={() => {}}
-              readOnly={true}
-              size={40}
-              showTitle={false}
-            />
-            <div className="user-info">
-              <span className="user-name">{user.name}</span>
-              <span className="user-email">{user.email}</span>
-            </div>
-            {selectedUserId === user._id && (
-              <span className="selected-indicator">✓</span>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
+    <Box p={4} bg="gray.50" borderRadius="lg" border="1px" borderColor="gray.200">
+      <VStack spacing={4} align="stretch">
+        <Heading size="md">Select User:</Heading>
+        <VStack spacing={2}>
+          {users.map(user => (
+            <Box
+              key={user._id}
+              p={3}
+              bg={selectedUserId === user._id ? "blue.50" : "white"}
+              border="2px"
+              borderColor={selectedUserId === user._id ? "blue.500" : "transparent"}
+              borderRadius="md"
+              cursor="pointer"
+              _hover={{ bg: selectedUserId === user._id ? "blue.50" : "gray.50" }}
+              onClick={() => handleUserSelect(user._id)}
+            >
+              <Flex align="center" gap={3}>
+                <AvatarSelector
+                  user={user}
+                  readOnly={true}
+                  size={40}
+                  showTitle={false}
+                />
+                <VStack align="start" spacing={0} flex={1}>
+                  <Text fontWeight="medium" fontSize="sm">{user.name}</Text>
+                  <Text fontSize="xs" color="gray.500">{user.email}</Text>
+                </VStack>
+                {selectedUserId === user._id && (
+                  <Text color="blue.500" fontWeight="bold" fontSize="lg">✓</Text>
+                )}
+              </Flex>
+            </Box>
+          ))}
+        </VStack>
+      </VStack>
+    </Box>
   );
 } 

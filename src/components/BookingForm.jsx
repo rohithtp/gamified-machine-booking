@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { Box, VStack, Heading, FormControl, FormLabel, Select, Input, Button, Text, Link as ChakraLink, Spinner } from '@chakra-ui/react';
+import { Link } from 'react-router-dom';
 import { api } from '../services/api';
 
 export default function BookingForm({ onBook }) {
@@ -35,53 +37,73 @@ export default function BookingForm({ onBook }) {
 
   if (loading) {
     return (
-      <form className="booking-form">
-        <h2>Book a Machine</h2>
-        <div>Loading machines...</div>
-      </form>
+      <Box as="form" onSubmit={handleSubmit}>
+        <VStack spacing={6} align="stretch">
+          <Heading size="md">Book a Machine</Heading>
+          <Box textAlign="center">
+            <Spinner size="md" color="blue.500" />
+            <Text mt={2}>Loading machines...</Text>
+          </Box>
+        </VStack>
+      </Box>
     );
   }
 
   if (machines.length === 0) {
     return (
-      <form className="booking-form">
-        <h2>Book a Machine</h2>
-        <div className="no-machines-message">
-          <p>No machines available for booking.</p>
-          <div className="no-machines-actions">
-            <a href="/systems" className="btn-primary">Go to System Management</a>
-            <p className="help-text">Add machines in the Systems page</p>
-          </div>
-        </div>
-      </form>
+      <Box as="form" onSubmit={handleSubmit}>
+        <VStack spacing={6} align="stretch">
+          <Heading size="md">Book a Machine</Heading>
+          <Box textAlign="center">
+            <Text mb={4}>No machines available for booking.</Text>
+            <VStack spacing={3}>
+              <ChakraLink as={Link} to="/systems" color="blue.500" fontWeight="medium">
+                Go to System Management
+              </ChakraLink>
+              <Text fontSize="sm" color="gray.500" fontStyle="italic">
+                Add machines in the Systems page
+              </Text>
+            </VStack>
+          </Box>
+        </VStack>
+      </Box>
     );
   }
 
   return (
-    <form className="booking-form" onSubmit={handleSubmit}>
-      <h2>Book a Machine</h2>
-      <label>
-        Machine:
-        <select value={machine} onChange={e => setMachine(e.target.value)} required>
-          <option value="">Select a machine</option>
-          {machines.map(m => (
-            <option key={m._id} value={m.name}>
-              {m.name} ({m.type})
-            </option>
-          ))}
-        </select>
-      </label>
-      <label>
-        Date:
-        <input 
-          type="date" 
-          value={date} 
-          onChange={e => setDate(e.target.value)} 
-          min={new Date().toISOString().split('T')[0]}
-          required 
-        />
-      </label>
-      <button type="submit">Book</button>
-    </form>
+    <Box as="form" onSubmit={handleSubmit}>
+      <VStack spacing={6} align="stretch">
+        <Heading size="md">Book a Machine</Heading>
+        
+        <FormControl isRequired>
+          <FormLabel>Machine:</FormLabel>
+          <Select 
+            value={machine} 
+            onChange={e => setMachine(e.target.value)}
+            placeholder="Select a machine"
+          >
+            {machines.map(m => (
+              <option key={m._id} value={m.name}>
+                {m.name} ({m.type})
+              </option>
+            ))}
+          </Select>
+        </FormControl>
+
+        <FormControl isRequired>
+          <FormLabel>Date:</FormLabel>
+          <Input 
+            type="date" 
+            value={date} 
+            onChange={e => setDate(e.target.value)} 
+            min={new Date().toISOString().split('T')[0]}
+          />
+        </FormControl>
+
+        <Button type="submit" colorScheme="blue" size="lg">
+          Book
+        </Button>
+      </VStack>
+    </Box>
   );
 }

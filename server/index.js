@@ -113,7 +113,6 @@ app.get('/api/gamification/:userId', (req, res) => {
             userId,
             points: 0,
             badges: [],
-            avatar: user.avatar || 'beam',
             totalBookings: 0
           };
           gamificationDb.insert(newUserData, (err, inserted) => {
@@ -131,19 +130,7 @@ app.get('/api/gamification/:userId', (req, res) => {
   });
 });
 
-// Update user avatar
-app.put('/api/gamification/:userId/avatar', (req, res) => {
-  const { userId } = req.params;
-  const { avatar } = req.body;
 
-  gamificationDb.update({ userId }, { $set: { avatar } }, {}, (err, numUpdated) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-    } else {
-      res.json({ success: true, numUpdated });
-    }
-  });
-});
 
 // Helper function to update user gamification
 function updateUserGamification(userId, pointsToAdd) {
@@ -159,7 +146,6 @@ function updateUserGamification(userId, pointsToAdd) {
         userId,
         points: pointsToAdd,
         badges: pointsToAdd >= 10 ? ['First Booking'] : [],
-        avatar: 'avatar1.png',
         totalBookings: 1
       };
       gamificationDb.insert(newUserData);
@@ -217,9 +203,18 @@ app.get('/api/machines', (req, res) => {
 // Create a new machine
 app.post('/api/machines', (req, res) => {
   const { name, type, description, location, isActive } = req.body;
+  
+  // Validate required fields
+  if (!name || !name.trim()) {
+    return res.status(400).json({ error: 'Machine name is required' });
+  }
+  if (!type || !type.trim()) {
+    return res.status(400).json({ error: 'Machine type is required' });
+  }
+  
   const machine = {
-    name,
-    type,
+    name: name.trim(),
+    type: type.trim(),
     description: description || '',
     location: location || '',
     isActive: isActive !== undefined ? isActive : true,
@@ -240,9 +235,23 @@ app.put('/api/machines/:id', (req, res) => {
   const { id } = req.params;
   const { name, type, description, location, isActive } = req.body;
 
+  // Validate required fields
+  if (!name || !name.trim()) {
+    return res.status(400).json({ error: 'Machine name is required' });
+  }
+  if (!type || !type.trim()) {
+    return res.status(400).json({ error: 'Machine type is required' });
+  }
+
   machinesDb.update(
     { _id: id },
-    { $set: { name, type, description, location, isActive } },
+    { $set: { 
+      name: name.trim(), 
+      type: type.trim(), 
+      description, 
+      location, 
+      isActive 
+    }},
     {},
     (err, numUpdated) => {
       if (err) {
@@ -302,10 +311,15 @@ app.get('/api/users', (req, res) => {
 // Create a new user
 app.post('/api/users', (req, res) => {
   const { name, email, avatar } = req.body;
+  
+  // Generate random avatar if not provided
+  const avatarVariants = ['beam', 'sunset', 'ring', 'pixel', 'bauhaus'];
+  const randomAvatar = avatar || avatarVariants[Math.floor(Math.random() * avatarVariants.length)];
+  
   const user = {
     name,
     email,
-    avatar: avatar || 'beam',
+    avatar: randomAvatar,
     createdAt: new Date(),
     isActive: true
   };
@@ -319,7 +333,6 @@ app.post('/api/users', (req, res) => {
         userId: newUser._id,
         points: 0,
         badges: [],
-        avatar: user.avatar,
         totalBookings: 0
       };
       gamificationDb.insert(gamificationData);
@@ -343,14 +356,7 @@ app.put('/api/users/:id', (req, res) => {
       } else if (numUpdated === 0) {
         res.status(404).json({ error: 'User not found' });
       } else {
-        // Also update gamification avatar if avatar was changed
-        if (avatar) {
-          gamificationDb.update(
-            { userId: id },
-            { $set: { avatar } },
-            {}
-          );
-        }
+        // Avatar is now managed in the user model only
         res.json({ success: true, numUpdated });
       }
     }
@@ -387,6 +393,34 @@ app.get('/api/users/:id', (req, res) => {
       res.json(user);
     }
   });
+});
+
+// Update user avatar (moved to user management)
+app.put('/api/users/:userId/avatar', (req, res) => {
+  const { userId } = req.params;
+  const { avatar } = req.body;
+
+  usersDb.update(
+    { _id: userId },
+    { $set: { avatar } },
+    {},
+    (err, numUpdated) => {
+      if (err) {
+        res.status(500).json({ error: err.message });
+      } else if (numUpdated === 0) {
+        res.status(404).json({ error: 'User not found' });
+      } else {
+        res.json({ success: true, numUpdated });
+      }
+    }
+  );
+});
+
+// Generate random avatar
+app.get('/api/avatar/random', (req, res) => {
+  const avatarVariants = ['beam', 'sunset', 'ring', 'pixel', 'bauhaus'];
+  const randomAvatar = avatarVariants[Math.floor(Math.random() * avatarVariants.length)];
+  res.json({ avatar: randomAvatar });
 });
 
 // Health check endpoint

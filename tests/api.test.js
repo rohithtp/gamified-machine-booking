@@ -36,6 +36,25 @@ class APITester {
     return data;
   }
 
+  async testUserCreation() {
+    const userData = {
+      name: 'Test User',
+      email: 'test@example.com',
+      avatar: 'beam'
+    };
+
+    const response = await fetch(`${API_BASE}/users`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(userData)
+    });
+
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    this.userId = data._id; // Update the userId with the actual created user ID
+    return data;
+  }
+
   async testGamificationEndpoint() {
     const response = await fetch(`${API_BASE}/gamification/${this.userId}`);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -62,7 +81,7 @@ class APITester {
   }
 
   async testAvatarUpdate() {
-    const response = await fetch(`${API_BASE}/gamification/${this.userId}/avatar`, {
+    const response = await fetch(`${API_BASE}/users/${this.userId}/avatar`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ avatar: 'avatar2.png' })
@@ -78,7 +97,7 @@ class APITester {
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const data = await response.json();
     return data;
-  },
+  }
 
   async testBookingUpdate() {
     // First create a booking
@@ -99,7 +118,7 @@ class APITester {
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const data = await response.json();
     return { ...data, bookingId: booking._id };
-  },
+  }
 
   async testBookingDeletion() {
     // First create a booking
@@ -154,6 +173,7 @@ async function runAPITests() {
     // Run all tests
     await tester.runTest('Health endpoint', () => tester.testHealthEndpoint());
     await tester.runTest('Machines endpoint', () => tester.testMachinesEndpoint());
+    await tester.runTest('User creation', () => tester.testUserCreation());
     await tester.runTest('Gamification endpoint (new user)', () => tester.testGamificationEndpoint());
     await tester.runTest('Booking creation', () => tester.testBookingCreation());
     await tester.runTest('Booking update', () => tester.testBookingUpdate());

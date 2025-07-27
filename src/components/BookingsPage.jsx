@@ -1,4 +1,39 @@
 import React, { useState, useEffect } from 'react';
+import { 
+  Box, 
+  Container, 
+  Heading, 
+  VStack, 
+  HStack,
+  Text, 
+  Button, 
+  Card, 
+  CardBody, 
+  CardHeader,
+  Badge,
+  Spinner,
+  Center,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
+  Grid,
+  GridItem,
+  useBreakpointValue,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  ModalCloseButton,
+  FormControl,
+  FormLabel,
+  Input,
+  Select,
+  Textarea,
+  useDisclosure
+} from '@chakra-ui/react';
 import { api } from '../services/api';
 
 export default function BookingsPage() {
@@ -8,6 +43,15 @@ export default function BookingsPage() {
   const [editingBooking, setEditingBooking] = useState(null);
   const [machines, setMachines] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
+  const containerMaxW = useBreakpointValue({ base: "100%", md: "1200px", lg: "1400px" });
+  const gridTemplateColumns = useBreakpointValue({ 
+    base: "1fr", 
+    md: "repeat(2, 1fr)",
+    lg: "repeat(3, 1fr)",
+    xl: "repeat(auto-fit, minmax(350px, 1fr))"
+  });
 
   useEffect(() => {
     const userId = api.getCurrentUser();
@@ -58,10 +102,10 @@ export default function BookingsPage() {
 
   const handleEdit = (booking) => {
     setEditingBooking(booking);
+    onOpen();
   };
 
-  const handleUpdate = async (e) => {
-    e.preventDefault();
+  const handleUpdate = async () => {
     try {
       await api.updateBooking(editingBooking._id, {
         machine: editingBooking.machine,
@@ -69,6 +113,7 @@ export default function BookingsPage() {
         status: editingBooking.status
       });
       setEditingBooking(null);
+      onClose();
       await loadBookings(); // Reload the list
     } catch (err) {
       setError('Failed to update booking');
@@ -78,6 +123,7 @@ export default function BookingsPage() {
 
   const handleCancelEdit = () => {
     setEditingBooking(null);
+    onClose();
   };
 
   const formatDate = (dateString) => {
@@ -88,151 +134,223 @@ export default function BookingsPage() {
     return new Date(dateString).toLocaleString();
   };
 
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'confirmed': return 'green';
+      case 'pending': return 'yellow';
+      case 'cancelled': return 'red';
+      case 'completed': return 'blue';
+      default: return 'gray';
+    }
+  };
+
   if (loading) {
     return (
-      <div className="container">
-        <div className="loading">Loading bookings...</div>
-      </div>
+      <Container maxW={containerMaxW} py={10} px={4}>
+        <Center>
+          <VStack spacing={4}>
+            <Spinner size="xl" color="blue.500" />
+            <Text fontSize="lg" color="gray.600">Loading bookings...</Text>
+          </VStack>
+        </Center>
+      </Container>
     );
   }
 
   const currentUserId = api.getCurrentUser();
   if (!currentUserId) {
     return (
-      <div className="container">
-        <div className="bookings-header">
-          <h1>My Bookings</h1>
-        </div>
-        <p>Please select a user to view bookings.</p>
-      </div>
+      <Container maxW={containerMaxW} py={10} px={4}>
+        <VStack spacing={6} align="stretch">
+          <Heading size="xl" textAlign="center" color="blue.600">
+            📋 My Bookings
+          </Heading>
+          <Card>
+            <CardBody>
+              <Text textAlign="center" color="gray.600">
+                Please select a user to view bookings.
+              </Text>
+            </CardBody>
+          </Card>
+        </VStack>
+      </Container>
     );
   }
 
   if (error) {
     return (
-      <div className="container">
-        <div className="error">
-          <h2>Error</h2>
-          <p>{error}</p>
-          <button onClick={loadBookings}>Retry</button>
-        </div>
-      </div>
+      <Container maxW={containerMaxW} py={10} px={4}>
+        <Alert status="error" borderRadius="lg">
+          <AlertIcon />
+          <Box>
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Box>
+          <Button ml={4} colorScheme="red" onClick={loadBookings}>
+            Retry
+          </Button>
+        </Alert>
+      </Container>
     );
   }
 
   return (
-    <div className="container">
-      <div className="bookings-header">
-        <h1>Bookings Management</h1>
-        <div className="header-actions">
-          <a href="/calendar" className="btn-secondary">📅 Calendar View</a>
-          <a href="/" className="back-link">← Back to Booking</a>
-        </div>
-      </div>
+    <Container maxW={containerMaxW} py={8} px={4}>
+      <VStack spacing={8} align="stretch">
+        <Box>
+          <Heading size="xl" color="blue.600" mb={2}>
+            📋 Bookings Management
+          </Heading>
+          <Text color="gray.600" fontSize="lg">
+            Manage your machine bookings and track their status
+          </Text>
+        </Box>
 
-      {bookings.length === 0 ? (
-        <div className="no-bookings">
-          <p>No bookings found. Create your first booking!</p>
-          <a href="/" className="btn-primary">Make a Booking</a>
-        </div>
-      ) : (
-        <div className="bookings-list">
-          {bookings.map((booking) => (
-            <div key={booking._id} className="booking-card">
-              {editingBooking && editingBooking._id === booking._id ? (
-                // Edit form
-                <form onSubmit={handleUpdate} className="booking-edit-form">
-                  <div className="form-row">
-                    <label>
-                      Machine:
-                      <select
-                        value={editingBooking.machine}
-                        onChange={(e) => setEditingBooking({
-                          ...editingBooking,
-                          machine: e.target.value
-                        })}
-                        required
+        <HStack spacing={4} justify="space-between" wrap="wrap">
+          <HStack spacing={4}>
+            <Button as="a" href="/calendar" colorScheme="blue" variant="outline" leftIcon={<span>📅</span>}>
+              Calendar View
+            </Button>
+            <Button as="a" href="/" colorScheme="gray" variant="outline" leftIcon={<span>←</span>}>
+              Back to Booking
+            </Button>
+          </HStack>
+        </HStack>
+
+        {bookings.length === 0 ? (
+          <Card>
+            <CardBody textAlign="center" py={12}>
+              <VStack spacing={4}>
+                <Text fontSize="lg" color="gray.600">
+                  No bookings found. Create your first booking!
+                </Text>
+                <Button as="a" href="/" colorScheme="blue" size="lg">
+                  Make a Booking
+                </Button>
+              </VStack>
+            </CardBody>
+          </Card>
+        ) : (
+          <Grid templateColumns={gridTemplateColumns} gap={6}>
+            {bookings.map((booking) => (
+              <Card key={booking._id} variant="outline" _hover={{ shadow: "md" }}>
+                <CardHeader pb={2}>
+                  <HStack justify="space-between" align="start">
+                    <VStack align="start" spacing={1}>
+                      <Heading size="md">{booking.machine}</Heading>
+                      <Badge colorScheme={getStatusColor(booking.status)} variant="subtle">
+                        {booking.status}
+                      </Badge>
+                    </VStack>
+                  </HStack>
+                </CardHeader>
+                <CardBody pt={0}>
+                  <VStack spacing={3} align="stretch">
+                    <Box>
+                      <Text fontWeight="bold" color="gray.700">Date:</Text>
+                      <Text color="gray.600">{formatDate(booking.date)}</Text>
+                    </Box>
+                    <Box>
+                      <Text fontWeight="bold" color="gray.700">Booked on:</Text>
+                      <Text color="gray.600">{formatDateTime(booking.createdAt)}</Text>
+                    </Box>
+                    <Box>
+                      <Text fontWeight="bold" color="gray.700">User ID:</Text>
+                      <Text color="gray.600">{booking.userId}</Text>
+                    </Box>
+                    
+                    <HStack spacing={2} pt={2}>
+                      <Button 
+                        size="sm" 
+                        colorScheme="blue" 
+                        variant="outline"
+                        onClick={() => handleEdit(booking)}
                       >
-                        {machines.map(m => (
-                          <option key={m.id} value={m.name}>
-                            {m.name} ({m.type})
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  </div>
-                  <div className="form-row">
-                    <label>
-                      Date:
-                      <input
-                        type="date"
-                        value={editingBooking.date}
-                        onChange={(e) => setEditingBooking({
-                          ...editingBooking,
-                          date: e.target.value
-                        })}
-                        required
-                      />
-                    </label>
-                  </div>
-                  <div className="form-row">
-                    <label>
-                      Status:
-                      <select
-                        value={editingBooking.status}
-                        onChange={(e) => setEditingBooking({
-                          ...editingBooking,
-                          status: e.target.value
-                        })}
+                        Edit
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        colorScheme="red" 
+                        variant="outline"
+                        onClick={() => handleDelete(booking._id)}
                       >
-                        <option value="confirmed">Confirmed</option>
-                        <option value="pending">Pending</option>
-                        <option value="cancelled">Cancelled</option>
-                        <option value="completed">Completed</option>
-                      </select>
-                    </label>
-                  </div>
-                  <div className="form-actions">
-                    <button type="submit" className="btn-save">Save</button>
-                    <button type="button" onClick={handleCancelEdit} className="btn-cancel">
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              ) : (
-                // Display mode
-                <div className="booking-info">
-                  <div className="booking-header">
-                    <h3>{booking.machine}</h3>
-                    <span className={`status-badge status-${booking.status}`}>
-                      {booking.status}
-                    </span>
-                  </div>
-                  <div className="booking-details">
-                    <p><strong>Date:</strong> {formatDate(booking.date)}</p>
-                    <p><strong>Booked on:</strong> {formatDateTime(booking.createdAt)}</p>
-                    <p><strong>User ID:</strong> {booking.userId}</p>
-                  </div>
-                  <div className="booking-actions">
-                    <button
-                      onClick={() => handleEdit(booking)}
-                      className="btn-edit"
+                        Delete
+                      </Button>
+                    </HStack>
+                  </VStack>
+                </CardBody>
+              </Card>
+            ))}
+          </Grid>
+        )}
+
+        {/* Edit Modal */}
+        <Modal isOpen={isOpen} onClose={onClose} size="md">
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Edit Booking</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              {editingBooking && (
+                <VStack spacing={4}>
+                  <FormControl>
+                    <FormLabel>Machine</FormLabel>
+                    <Select
+                      value={editingBooking.machine}
+                      onChange={(e) => setEditingBooking({
+                        ...editingBooking,
+                        machine: e.target.value
+                      })}
                     >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(booking._id)}
-                      className="btn-delete"
+                      {machines.map(m => (
+                        <option key={m.id} value={m.name}>
+                          {m.name} ({m.type})
+                        </option>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  
+                  <FormControl>
+                    <FormLabel>Date</FormLabel>
+                    <Input
+                      type="date"
+                      value={editingBooking.date}
+                      onChange={(e) => setEditingBooking({
+                        ...editingBooking,
+                        date: e.target.value
+                      })}
+                    />
+                  </FormControl>
+                  
+                  <FormControl>
+                    <FormLabel>Status</FormLabel>
+                    <Select
+                      value={editingBooking.status}
+                      onChange={(e) => setEditingBooking({
+                        ...editingBooking,
+                        status: e.target.value
+                      })}
                     >
-                      Delete
-                    </button>
-                  </div>
-                </div>
+                      <option value="confirmed">Confirmed</option>
+                      <option value="pending">Pending</option>
+                      <option value="cancelled">Cancelled</option>
+                      <option value="completed">Completed</option>
+                    </Select>
+                  </FormControl>
+                </VStack>
               )}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+            </ModalBody>
+            <ModalFooter>
+              <Button variant="ghost" mr={3} onClick={handleCancelEdit}>
+                Cancel
+              </Button>
+              <Button colorScheme="blue" onClick={handleUpdate}>
+                Save Changes
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+      </VStack>
+    </Container>
   );
 } 
