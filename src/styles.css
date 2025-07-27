@@ -1,0 +1,69 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #f6f8fa;
+  margin: 0;
+  padding: 0;
+}
+.container {
+  max-width: 500px;
+  margin: 40px auto;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.1);
+  padding: 24px;
+}
+.booking-form label {
+  display: block;
+  margin: 12px 0 6px;
+}
+.booking-form input {
+  width: 100%;
+  padding: 7px;
+  margin-bottom: 12px;
+}
+.booking-form button {
+  background: #007bff;
+  color: #fff;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+}
+.gamification-panel {
+  display: flex;
+  align-items: center;
+  margin-bottom: 18px;
+}
+.avatar-img {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  margin-right: 18px;
+}
+.avatar-selector img {
+  width: 40px;
+  height: 40px;
+}
+.avatar-selector .selected {
+  border: 3px solid #007bff;
+}
+.animation {
+  text-align: center;
+  font-size: 2em;
+  color: #28a745;
+  margin-top: 16px;
+  animation: fadeIn 2s;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.confetti {
+  font-size: 3em;
+  animation: confettiBurst 1.5s infinite alternate;
+}
+@keyframes confettiBurst {
+  from { transform: scale(1); }
+  to { transform: scale(1.3) rotate(24deg); }
+}
