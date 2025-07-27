@@ -15,25 +15,55 @@ body {
 .booking-form label {
   display: block;
   margin: 12px 0 6px;
+  font-weight: 500;
+  color: #333;
 }
-.booking-form input {
+.booking-form input,
+.booking-form select {
   width: 100%;
-  padding: 7px;
+  padding: 10px;
   margin-bottom: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+.booking-form select {
+  background-color: #fff;
+  cursor: pointer;
+}
+.booking-form input:focus,
+.booking-form select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 }
 .booking-form button {
   background: #007bff;
   color: #fff;
   border: none;
-  padding: 10px 24px;
+  padding: 12px 24px;
   border-radius: 6px;
   cursor: pointer;
   font-size: 16px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+.booking-form button:hover {
+  background: #0056b3;
+}
+.booking-form button:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
 }
 .gamification-panel {
   display: flex;
   align-items: center;
   margin-bottom: 18px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
 }
 .avatar-img {
   width: 48px;
@@ -44,6 +74,12 @@ body {
 .avatar-selector img {
   width: 40px;
   height: 40px;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+.avatar-selector img:hover {
+  transform: scale(1.1);
 }
 .avatar-selector .selected {
   border: 3px solid #007bff;
@@ -66,4 +102,308 @@ body {
 @keyframes confettiBurst {
   from { transform: scale(1); }
   to { transform: scale(1.3) rotate(24deg); }
+}
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: #6c757d;
+  font-size: 18px;
+}
+.loading::after {
+  content: '';
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-left: 10px;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.error {
+  text-align: center;
+  padding: 20px;
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 6px;
+  color: #721c24;
+  margin-bottom: 20px;
+}
+.error h2 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+}
+.error p {
+  margin: 0 0 15px 0;
+}
+.error button {
+  background: #dc3545;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.error button:hover {
+  background: #c82333;
+}
+
+/* Navigation Bar */
+.app {
+  min-height: 100vh;
+  background: #f6f8fa;
+}
+
+.nav-bar {
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,.1);
+  padding: 0;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.nav-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 60px;
+}
+
+.nav-logo {
+  font-size: 20px;
+  font-weight: bold;
+  color: #007bff;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+}
+
+.nav-links {
+  display: flex;
+  gap: 20px;
+}
+
+.nav-link {
+  color: #333;
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.nav-link:hover {
+  background: #f8f9fa;
+  color: #007bff;
+}
+
+/* Bookings Page */
+.bookings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.back-link {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.back-link:hover {
+  background: #f8f9fa;
+}
+
+.no-bookings {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6c757d;
+}
+
+.btn-primary {
+  display: inline-block;
+  background: #007bff;
+  color: #fff;
+  text-decoration: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-weight: 500;
+  margin-top: 20px;
+  transition: background-color 0.2s;
+}
+
+.btn-primary:hover {
+  background: #0056b3;
+}
+
+.bookings-list {
+  display: grid;
+  gap: 20px;
+}
+
+.booking-card {
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,.05);
+  transition: box-shadow 0.2s;
+}
+
+.booking-card:hover {
+  box-shadow: 0 4px 8px rgba(0,0,0,.1);
+}
+
+.booking-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.booking-header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 18px;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.status-confirmed {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status-cancelled {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.status-completed {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.booking-details {
+  margin-bottom: 20px;
+}
+
+.booking-details p {
+  margin: 8px 0;
+  color: #666;
+}
+
+.booking-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-edit, .btn-delete, .btn-save, .btn-cancel {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.btn-edit {
+  background: #17a2b8;
+  color: #fff;
+}
+
+.btn-edit:hover {
+  background: #138496;
+}
+
+.btn-delete {
+  background: #dc3545;
+  color: #fff;
+}
+
+.btn-delete:hover {
+  background: #c82333;
+}
+
+.btn-save {
+  background: #28a745;
+  color: #fff;
+}
+
+.btn-save:hover {
+  background: #218838;
+}
+
+.btn-cancel {
+  background: #6c757d;
+  color: #fff;
+}
+
+.btn-cancel:hover {
+  background: #5a6268;
+}
+
+/* Booking Edit Form */
+.booking-edit-form {
+  padding: 0;
+}
+
+.form-row {
+  margin-bottom: 15px;
+}
+
+.form-row label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: #333;
+}
+
+.form-row input,
+.form-row select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.form-row input:focus,
+.form-row select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
 }
