@@ -124,7 +124,10 @@ export default function BookingsPage() {
     <div className="container">
       <div className="bookings-header">
         <h1>Bookings Management</h1>
-        <a href="/" className="back-link">← Back to Booking</a>
+        <div className="header-actions">
+          <a href="/calendar" className="btn-secondary">📅 Calendar View</a>
+          <a href="/" className="back-link">← Back to Booking</a>
+        </div>
       </div>
 
       {bookings.length === 0 ? (

@@ -12,6 +12,11 @@ body {
   box-shadow: 0 2px 8px rgba(0,0,0,.1);
   padding: 24px;
 }
+
+/* Calendar container should be wider */
+.container.calendar-page {
+  max-width: 1200px;
+}
 .booking-form label {
   display: block;
   margin: 12px 0 6px;
@@ -222,6 +227,29 @@ body {
   padding: 8px 16px;
   border-radius: 6px;
   transition: background-color 0.2s;
+}
+
+.header-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: #fff;
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+  color: #fff;
+  text-decoration: none;
 }
 
 /* Users Page */
