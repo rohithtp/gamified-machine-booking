@@ -3,26 +3,27 @@ import Avatar from 'boring-avatars';
 const avatarVariants = ['beam', 'sunset', 'ring', 'pixel', 'bauhaus'];
 const colors = ['#264653', '#2a9d8f', '#e9c46a', '#f4a261', '#e76f51'];
 
-export default function AvatarSelector({ avatar, setAvatar }) {
+export default function AvatarSelector({ avatar, setAvatar, readOnly = false, size = 40, showTitle = true }) {
   return (
     <div className="avatar-selector">
-      <h3>Select Your Avatar:</h3>
+      {showTitle && <h3>Select Your Avatar:</h3>}
       <div>
         {avatarVariants.map(variant => (
           <div
             key={variant}
-            onClick={() => setAvatar(variant)}
+            onClick={readOnly ? undefined : () => setAvatar(variant)}
             style={{ 
-              cursor: 'pointer', 
+              cursor: readOnly ? 'default' : 'pointer', 
               margin: '0 8px', 
               display: 'inline-block',
               border: avatar === variant ? '2px solid #007bff' : 'none',
               borderRadius: '50%',
-              padding: '2px'
+              padding: '2px',
+              opacity: readOnly && avatar !== variant ? 0.3 : 1
             }}
           >
             <Avatar
-              size={40}
+              size={size}
               name={variant}
               variant={variant}
               colors={colors}

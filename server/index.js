@@ -101,19 +101,28 @@ app.get('/api/gamification/:userId', (req, res) => {
     if (err) {
       res.status(500).json({ error: err.message });
     } else if (!data) {
-      // Create new user data if doesn't exist
-      const newUserData = {
-        userId,
-        points: 0,
-        badges: [],
-        avatar: 'avatar1.png',
-        totalBookings: 0
-      };
-      gamificationDb.insert(newUserData, (err, inserted) => {
+      // Check if user exists in users database
+      usersDb.findOne({ _id: userId }, (err, user) => {
         if (err) {
           res.status(500).json({ error: err.message });
+        } else if (!user) {
+          res.status(404).json({ error: 'User not found' });
         } else {
-          res.json(inserted);
+          // Create new gamification data for existing user
+          const newUserData = {
+            userId,
+            points: 0,
+            badges: [],
+            avatar: user.avatar || 'beam',
+            totalBookings: 0
+          };
+          gamificationDb.insert(newUserData, (err, inserted) => {
+            if (err) {
+              res.status(500).json({ error: err.message });
+            } else {
+              res.json(inserted);
+            }
+          });
         }
       });
     } else {
@@ -189,17 +198,195 @@ function updateUserGamification(userId, pointsToAdd) {
   });
 }
 
+// Initialize machines database
+const machinesDb = new Datastore({ filename: path.join(__dirname, 'data/machines.db'), autoload: true });
+
 // Get available machines
 app.get('/api/machines', (req, res) => {
-  const machines = [
-    { id: 1, name: '3D Printer', type: 'manufacturing' },
-    { id: 2, name: 'Laser Cutter', type: 'manufacturing' },
-    { id: 3, name: 'CNC Machine', type: 'manufacturing' },
-    { id: 4, name: 'VR Headset', type: 'simulation' },
-    { id: 5, name: 'Arduino Kit', type: 'electronics' },
-    { id: 6, name: 'Microscope', type: 'research' }
-  ];
-  res.json(machines);
+  machinesDb.find({}, (err, machines) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+    } else {
+      res.json(machines);
+    }
+  });
+});
+
+// Systems Management API Routes
+
+// Create a new machine
+app.post('/api/machines', (req, res) => {
+  const { name, type, description, location, isActive } = req.body;
+  const machine = {
+    name,
+    type,
+    description: description || '',
+    location: location || '',
+    isActive: isActive !== undefined ? isActive : true,
+    createdAt: new Date()
+  };
+
+  machinesDb.insert(machine, (err, newMachine) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+    } else {
+      res.json(newMachine);
+    }
+  });
+});
+
+// Update a machine
+app.put('/api/machines/:id', (req, res) => {
+  const { id } = req.params;
+  const { name, type, description, location, isActive } = req.body;
+
+  machinesDb.update(
+    { _id: id },
+    { $set: { name, type, description, location, isActive } },
+    {},
+    (err, numUpdated) => {
+      if (err) {
+        res.status(500).json({ error: err.message });
+      } else if (numUpdated === 0) {
+        res.status(404).json({ error: 'Machine not found' });
+      } else {
+        res.json({ success: true, numUpdated });
+      }
+    }
+  );
+});
+
+// Delete a machine
+app.delete('/api/machines/:id', (req, res) => {
+  const { id } = req.params;
+
+  machinesDb.remove({ _id: id }, {}, (err, numRemoved) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+    } else if (numRemoved === 0) {
+      res.status(404).json({ error: 'Machine not found' });
+    } else {
+      res.json({ success: true, numRemoved });
+    }
+  });
+});
+
+// Get machine by ID
+app.get('/api/machines/:id', (req, res) => {
+  const { id } = req.params;
+
+  machinesDb.findOne({ _id: id }, (err, machine) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+    } else if (!machine) {
+      res.status(404).json({ error: 'Machine not found' });
+    } else {
+      res.json(machine);
+    }
+  });
+});
+
+// User Management API Routes
+
+// Get all users
+app.get('/api/users', (req, res) => {
+  usersDb.find({}, (err, users) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+    } else {
+      res.json(users);
+    }
+  });
+});
+
+// Create a new user
+app.post('/api/users', (req, res) => {
+  const { name, email, avatar } = req.body;
+  const user = {
+    name,
+    email,
+    avatar: avatar || 'beam',
+    createdAt: new Date(),
+    isActive: true
+  };
+
+  usersDb.insert(user, (err, newUser) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+    } else {
+      // Create gamification data for the new user
+      const gamificationData = {
+        userId: newUser._id,
+        points: 0,
+        badges: [],
+        avatar: user.avatar,
+        totalBookings: 0
+      };
+      gamificationDb.insert(gamificationData);
+      res.json(newUser);
+    }
+  });
+});
+
+// Update a user
+app.put('/api/users/:id', (req, res) => {
+  const { id } = req.params;
+  const { name, email, avatar, isActive } = req.body;
+
+  usersDb.update(
+    { _id: id },
+    { $set: { name, email, avatar, isActive } },
+    {},
+    (err, numUpdated) => {
+      if (err) {
+        res.status(500).json({ error: err.message });
+      } else if (numUpdated === 0) {
+        res.status(404).json({ error: 'User not found' });
+      } else {
+        // Also update gamification avatar if avatar was changed
+        if (avatar) {
+          gamificationDb.update(
+            { userId: id },
+            { $set: { avatar } },
+            {}
+          );
+        }
+        res.json({ success: true, numUpdated });
+      }
+    }
+  );
+});
+
+// Delete a user
+app.delete('/api/users/:id', (req, res) => {
+  const { id } = req.params;
+
+  usersDb.remove({ _id: id }, {}, (err, numRemoved) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+    } else if (numRemoved === 0) {
+      res.status(404).json({ error: 'User not found' });
+    } else {
+      // Also remove gamification data
+      gamificationDb.remove({ userId: id }, {});
+      res.json({ success: true, numRemoved });
+    }
+  });
+});
+
+// Get user by ID
+app.get('/api/users/:id', (req, res) => {
+  const { id } = req.params;
+
+  usersDb.findOne({ _id: id }, (err, user) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+    } else if (!user) {
+      res.status(404).json({ error: 'User not found' });
+    } else {
+      res.json(user);
+    }
+  });
 });
 
 // Health check endpoint

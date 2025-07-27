@@ -7,17 +7,26 @@ export default function BookingsPage() {
   const [error, setError] = useState(null);
   const [editingBooking, setEditingBooking] = useState(null);
   const [machines, setMachines] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
-    loadBookings();
-    loadMachines();
+    const userId = api.getCurrentUser();
+    if (userId) {
+      loadBookings();
+      loadMachines();
+    } else {
+      setLoading(false);
+    }
   }, []);
 
   const loadBookings = async () => {
     try {
       setLoading(true);
       const data = await api.getBookings();
-      setBookings(data);
+      // Filter bookings for current user
+      const userId = api.getCurrentUser();
+      const userBookings = userId ? data.filter(booking => booking.userId === userId) : [];
+      setBookings(userBookings);
     } catch (err) {
       setError('Failed to load bookings');
       console.error('Error loading bookings:', err);
@@ -83,6 +92,18 @@ export default function BookingsPage() {
     return (
       <div className="container">
         <div className="loading">Loading bookings...</div>
+      </div>
+    );
+  }
+
+  const currentUserId = api.getCurrentUser();
+  if (!currentUserId) {
+    return (
+      <div className="container">
+        <div className="bookings-header">
+          <h1>My Bookings</h1>
+        </div>
+        <p>Please select a user to view bookings.</p>
       </div>
     );
   }

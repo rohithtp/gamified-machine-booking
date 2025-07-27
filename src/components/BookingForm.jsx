@@ -14,7 +14,9 @@ export default function BookingForm({ onBook }) {
   const loadMachines = async () => {
     try {
       const machinesData = await api.getMachines();
-      setMachines(machinesData);
+      // Only show active machines for booking
+      const activeMachines = machinesData.filter(machine => machine.isActive !== false);
+      setMachines(activeMachines);
     } catch (err) {
       console.error('Failed to load machines:', err);
     } finally {
@@ -40,6 +42,21 @@ export default function BookingForm({ onBook }) {
     );
   }
 
+  if (machines.length === 0) {
+    return (
+      <form className="booking-form">
+        <h2>Book a Machine</h2>
+        <div className="no-machines-message">
+          <p>No machines available for booking.</p>
+          <div className="no-machines-actions">
+            <a href="/systems" className="btn-primary">Go to System Management</a>
+            <p className="help-text">Add machines in the Systems page</p>
+          </div>
+        </div>
+      </form>
+    );
+  }
+
   return (
     <form className="booking-form" onSubmit={handleSubmit}>
       <h2>Book a Machine</h2>
@@ -48,7 +65,7 @@ export default function BookingForm({ onBook }) {
         <select value={machine} onChange={e => setMachine(e.target.value)} required>
           <option value="">Select a machine</option>
           {machines.map(m => (
-            <option key={m.id} value={m.name}>
+            <option key={m._id} value={m.name}>
               {m.name} ({m.type})
             </option>
           ))}

@@ -1,17 +1,16 @@
 import React from 'react';
-import Avatar from 'boring-avatars';
-
-const colors = ['#264653', '#2a9d8f', '#e9c46a', '#f4a261', '#e76f51'];
+import AvatarSelector from './AvatarSelector';
 
 export default function GamificationPanel({ points, badges, avatar }) {
   return (
     <div className="gamification-panel">
       <div className="avatar-container">
-        <Avatar
+        <AvatarSelector
+          avatar={avatar}
+          setAvatar={() => {}}
+          readOnly={true}
           size={60}
-          name={avatar}
-          variant={avatar}
-          colors={colors}
+          showTitle={false}
         />
       </div>
       <div>
