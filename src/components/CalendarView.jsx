@@ -29,6 +29,7 @@ import { api } from '../services/api';
 
 export default function CalendarView() {
   const [bookings, setBookings] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -49,12 +50,7 @@ export default function CalendarView() {
   });
 
   useEffect(() => {
-    const userId = api.getCurrentUser();
-    if (userId) {
-      loadBookings();
-    } else {
-      setLoading(false);
-    }
+    loadData();
   }, []);
 
   useEffect(() => {
@@ -63,19 +59,31 @@ export default function CalendarView() {
     }
   }, [bookings]);
 
-  const loadBookings = async () => {
+  const loadData = async () => {
     try {
       setLoading(true);
-      const data = await api.getBookings();
-      const userId = api.getCurrentUser();
-      const userBookings = userId ? data.filter(booking => booking.userId === userId) : [];
-      setBookings(userBookings);
+      const [bookingsData, usersData] = await Promise.all([
+        api.getBookings(),
+        api.getUsers()
+      ]);
+      setBookings(bookingsData);
+      setUsers(usersData);
     } catch (err) {
-      setError('Failed to load bookings');
-      console.error('Error loading bookings:', err);
+      setError('Failed to load data');
+      console.error('Error loading data:', err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const getUserName = (userId) => {
+    const user = users.find(u => u._id === userId);
+    return user ? user.name : 'Unknown User';
+  };
+
+  const getUserAvatar = (userId) => {
+    const user = users.find(u => u._id === userId);
+    return user ? user.avatar : 'beam';
   };
 
   const groupBookings = () => {
@@ -223,9 +231,14 @@ export default function CalendarView() {
                   <HStack justify="space-between" align="start">
                     <VStack align="start" spacing={1}>
                       <Heading size="sm">{booking.machine}</Heading>
-                      <Badge colorScheme={getStatusColor(booking.status)} variant="subtle">
-                        {booking.status}
-                      </Badge>
+                      <HStack spacing={2}>
+                        <Badge colorScheme={getStatusColor(booking.status)} variant="subtle">
+                          {booking.status}
+                        </Badge>
+                        <Badge colorScheme="purple" variant="outline" fontSize="xs">
+                          {getUserName(booking.userId)}
+                        </Badge>
+                      </HStack>
                     </VStack>
                   </HStack>
                 </CardHeader>
@@ -238,6 +251,10 @@ export default function CalendarView() {
                     <Box>
                       <Text fontWeight="bold" color="gray.700" fontSize="sm">Time:</Text>
                       <Text color="gray.600" fontSize="sm">{new Date(booking.date).toLocaleTimeString()}</Text>
+                    </Box>
+                    <Box>
+                      <Text fontWeight="bold" color="gray.700" fontSize="sm">Booked by:</Text>
+                      <Text color="gray.600" fontSize="sm">{getUserName(booking.userId)}</Text>
                     </Box>
                     <Box>
                       <Text fontWeight="bold" color="gray.700" fontSize="sm">Booked on:</Text>
@@ -274,25 +291,7 @@ export default function CalendarView() {
     );
   }
 
-  const currentUserId = api.getCurrentUser();
-  if (!currentUserId) {
-    return (
-      <Container maxW={containerMaxW} py={10} px={4}>
-        <VStack spacing={6} align="stretch">
-          <Heading size="xl" textAlign="center" color="blue.600">
-            📅 Booking Calendar
-          </Heading>
-          <Card>
-            <CardBody>
-              <Text textAlign="center" color="gray.600">
-                Please select a user to view the calendar.
-              </Text>
-            </CardBody>
-          </Card>
-        </VStack>
-      </Container>
-    );
-  }
+
 
   if (error) {
     return (
@@ -303,7 +302,7 @@ export default function CalendarView() {
             <AlertTitle>Error</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Box>
-          <Button ml={4} colorScheme="red" onClick={loadBookings}>
+          <Button ml={4} colorScheme="red" onClick={loadData}>
             Retry
           </Button>
         </Alert>
@@ -316,10 +315,10 @@ export default function CalendarView() {
       <VStack spacing={8} align="stretch">
         <Box>
           <Heading size="xl" color="blue.600" mb={2}>
-            📅 Booking Calendar
+            📅 All Bookings Calendar
           </Heading>
           <Text color="gray.600" fontSize="lg">
-            View and manage your bookings in calendar or list format
+            View all bookings from all users in calendar or list format
           </Text>
         </Box>
 
@@ -398,9 +397,14 @@ export default function CalendarView() {
                             <HStack justify="space-between" align="start">
                               <VStack align="start" spacing={1}>
                                 <Heading size="sm">{booking.machine}</Heading>
-                                <Badge colorScheme={getStatusColor(booking.status)} variant="subtle">
-                                  {booking.status}
-                                </Badge>
+                                <HStack spacing={2}>
+                                  <Badge colorScheme={getStatusColor(booking.status)} variant="subtle">
+                                    {booking.status}
+                                  </Badge>
+                                  <Badge colorScheme="purple" variant="outline" fontSize="xs">
+                                    {getUserName(booking.userId)}
+                                  </Badge>
+                                </HStack>
                               </VStack>
                             </HStack>
                           </CardHeader>
@@ -409,6 +413,10 @@ export default function CalendarView() {
                               <Box>
                                 <Text fontWeight="bold" color="gray.700" fontSize="sm">Time:</Text>
                                 <Text color="gray.600" fontSize="sm">{new Date(booking.date).toLocaleTimeString()}</Text>
+                              </Box>
+                              <Box>
+                                <Text fontWeight="bold" color="gray.700" fontSize="sm">Booked by:</Text>
+                                <Text color="gray.600" fontSize="sm">{getUserName(booking.userId)}</Text>
                               </Box>
                               <Box>
                                 <Text fontWeight="bold" color="gray.700" fontSize="sm">Status:</Text>

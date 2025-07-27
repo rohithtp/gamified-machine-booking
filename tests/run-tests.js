@@ -7,6 +7,15 @@ async function main() {
   
   try {
     await runAPITests();
+    
+    console.log('\n' + '='.repeat(50));
+    console.log('CALENDAR FUNCTIONALITY TEST');
+    console.log('='.repeat(50));
+    
+    // Import and run calendar test
+    const { testCalendarData } = require('./calendar-test');
+    await testCalendarData();
+    
   } catch (error) {
     console.error('❌ Test runner failed:', error.message);
     process.exit(1);
