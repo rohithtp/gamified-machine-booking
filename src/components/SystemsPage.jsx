@@ -206,6 +206,16 @@ export default function SystemsPage() {
   };
 
   const handleUpdate = async () => {
+    // Validate required fields
+    if (!editingMachine.name.trim()) {
+      setError('Machine name is required');
+      return;
+    }
+    if (!editingMachine.type.trim()) {
+      setError('Machine type is required');
+      return;
+    }
+    
     try {
       await api.updateMachine(editingMachine._id, {
         name: editingMachine.name,
@@ -216,6 +226,7 @@ export default function SystemsPage() {
       });
       setEditingMachine(null);
       onClose();
+      setError(null); // Clear any previous errors
       await loadMachines(); // Reload the list
     } catch (err) {
       setError('Failed to update machine');

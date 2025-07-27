@@ -88,6 +88,16 @@ export default function UsersPage() {
   };
 
   const handleUpdate = async () => {
+    // Validate required fields
+    if (!editingUser.name.trim()) {
+      setError('User name is required');
+      return;
+    }
+    if (!editingUser.email.trim()) {
+      setError('User email is required');
+      return;
+    }
+    
     try {
       await api.updateUser(editingUser._id, {
         name: editingUser.name,
@@ -97,6 +107,7 @@ export default function UsersPage() {
       });
       setEditingUser(null);
       onClose();
+      setError(null); // Clear any previous errors
       await loadUsers(); // Reload the list
     } catch (err) {
       setError('Failed to update user');

@@ -106,6 +106,16 @@ export default function BookingsPage() {
   };
 
   const handleUpdate = async () => {
+    // Validate required fields
+    if (!editingBooking.machine) {
+      setError('Machine selection is required');
+      return;
+    }
+    if (!editingBooking.date) {
+      setError('Booking date is required');
+      return;
+    }
+    
     try {
       await api.updateBooking(editingBooking._id, {
         machine: editingBooking.machine,
@@ -114,6 +124,7 @@ export default function BookingsPage() {
       });
       setEditingBooking(null);
       onClose();
+      setError(null); // Clear any previous errors
       await loadBookings(); // Reload the list
     } catch (err) {
       setError('Failed to update booking');
